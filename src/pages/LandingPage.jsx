@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 
 // ── Navbar ──────────────────────────────────────────────────────────────────
 function Navbar({ onLogin, onRegister }) {
@@ -523,7 +525,26 @@ function Footer() {
 
 // ── Login Modal ───────────────────────────────────────────────────────────────
 function LoginModal({ onClose, onSwitch }) {
+  const { login, loading, error } = useAuth()
+  const navigate = useNavigate()
   const [showPw, setShowPw] = useState(false)
+  const [form, setForm] = useState({ email: '', password: '' })
+  const [localError, setLocalError] = useState(null)
+
+  const handleLogin = async () => {
+    setLocalError(null)
+    if (!form.email || !form.password) {
+      setLocalError('Please fill in all fields')
+      return
+    }
+    const result = await login(form.email, form.password)
+    if (result.success) {
+      onClose()
+      navigate('/dashboard')
+    } else {
+      setLocalError(result.error)
+    }
+  }
 
   return (
     <div style={{
@@ -533,8 +554,8 @@ function LoginModal({ onClose, onSwitch }) {
     }} onClick={onClose}>
       <div style={{
         background: '#111', border: '1px solid rgba(201,168,76,0.2)',
-        borderRadius: 16, padding: '2.5rem', width: 420,
-        boxShadow: '0 40px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,168,76,0.05)',
+        borderRadius: 16, padding: '2.5rem', width: 420, position: 'relative',
+        boxShadow: '0 40px 80px rgba(0,0,0,0.8)',
       }} onClick={e => e.stopPropagation()}>
         <button onClick={onClose} style={{
           position: 'absolute', right: '1.5rem', top: '1.5rem',
@@ -546,39 +567,57 @@ function LoginModal({ onClose, onSwitch }) {
         </h2>
         <p style={{ color: '#555', fontSize: '0.85rem', marginBottom: '2rem' }}>Please enter your details to log in</p>
 
-        <label style={{ display: 'block', color: '#888', fontSize: '0.8rem', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-          Email Address
-        </label>
-        <input placeholder="john@example.com" style={{
-          width: '100%', padding: '0.75rem 1rem', marginBottom: '1.25rem',
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 8, color: '#E8E8E8', fontSize: '0.9rem', outline: 'none',
-          boxSizing: 'border-box',
-        }} />
+        {(localError || error) && (
+          <div style={{
+            background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.2)',
+            borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.25rem',
+            color: '#ff6b6b', fontSize: '0.85rem',
+          }}>
+            {localError || (typeof error === 'object' ? JSON.stringify(error) : error)}
+          </div>
+        )}
 
-        <label style={{ display: 'block', color: '#888', fontSize: '0.8rem', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-          Password
-        </label>
-        <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
-          <input type={showPw ? 'text' : 'password'} placeholder="Min 6 Characters" style={{
-            width: '100%', padding: '0.75rem 1rem',
+        <label style={{ display: 'block', color: '#888', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Email Address</label>
+        <input
+          value={form.email}
+          onChange={e => setForm({ ...form, email: e.target.value })}
+          placeholder="john@example.com"
+          style={{
+            width: '100%', padding: '0.75rem 1rem', marginBottom: '1.25rem',
             background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 8, color: '#E8E8E8', fontSize: '0.9rem', outline: 'none',
             boxSizing: 'border-box',
-          }} />
+          }}
+        />
+
+        <label style={{ display: 'block', color: '#888', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Password</label>
+        <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+          <input
+            type={showPw ? 'text' : 'password'}
+            value={form.password}
+            onChange={e => setForm({ ...form, password: e.target.value })}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            placeholder="Min 6 Characters"
+            style={{
+              width: '100%', padding: '0.75rem 1rem',
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 8, color: '#E8E8E8', fontSize: '0.9rem', outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
           <button onClick={() => setShowPw(!showPw)} style={{
             position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: '0.85rem',
+            background: 'none', border: 'none', color: '#555', cursor: 'pointer',
           }}>{showPw ? '👁' : '👁‍🗨'}</button>
         </div>
 
-        <button style={{
+        <button onClick={handleLogin} disabled={loading} style={{
           width: '100%', padding: '0.875rem',
-          background: 'linear-gradient(135deg, #C9A84C, #E8C97A)',
+          background: loading ? 'rgba(201,168,76,0.5)' : 'linear-gradient(135deg, #C9A84C, #E8C97A)',
           border: 'none', borderRadius: 8, color: '#0A0A0A',
           fontSize: '0.875rem', fontWeight: 700, letterSpacing: '0.08em',
-          textTransform: 'uppercase', cursor: 'pointer',
-        }}>Login</button>
+          textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer',
+        }}>{loading ? 'Logging in...' : 'Login'}</button>
 
         <p style={{ textAlign: 'center', marginTop: '1.5rem', color: '#555', fontSize: '0.85rem' }}>
           Don't have an account?{' '}
@@ -593,7 +632,55 @@ function LoginModal({ onClose, onSwitch }) {
 
 // ── Register Modal ────────────────────────────────────────────────────────────
 function RegisterModal({ onClose, onSwitch }) {
+  const { register, loading, error } = useAuth()
   const [showPw, setShowPw] = useState(false)
+  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [localError, setLocalError] = useState(null)
+  const [success, setSuccess] = useState(false)
+
+  const handleRegister = async () => {
+    setLocalError(null)
+    if (!form.name || !form.email || !form.password) {
+      setLocalError('Please fill in all fields')
+      return
+    }
+    const result = await register(form.name, form.email, form.password)
+    if (result.success) {
+      setSuccess(true)
+    } else {
+      setLocalError(typeof result.error === 'object' ? JSON.stringify(result.error) : result.error)
+    }
+  }
+
+  if (success) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }} onClick={onClose}>
+        <div style={{
+          background: '#111', border: '1px solid rgba(201,168,76,0.2)',
+          borderRadius: 16, padding: '2.5rem', width: 420, textAlign: 'center',
+          position: 'relative',
+        }} onClick={e => e.stopPropagation()}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✉️</div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.75rem', color: '#E8E8E8', marginBottom: '0.75rem' }}>
+            Check Your Email
+          </h2>
+          <p style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: '2rem' }}>
+            We've sent a verification link to <strong style={{ color: '#C9A84C' }}>{form.email}</strong>. Please verify to log in.
+          </p>
+          <button onClick={onSwitch} style={{
+            background: 'linear-gradient(135deg, #C9A84C, #E8C97A)',
+            border: 'none', borderRadius: 8, color: '#0A0A0A',
+            fontSize: '0.875rem', fontWeight: 700, padding: '0.75rem 2rem',
+            cursor: 'pointer',
+          }}>Back to Login</button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{
@@ -616,52 +703,65 @@ function RegisterModal({ onClose, onSwitch }) {
         </h2>
         <p style={{ color: '#555', fontSize: '0.85rem', marginBottom: '2rem' }}>Join us today by entering your details below.</p>
 
-        {/* Avatar upload */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+        {(localError || error) && (
           <div style={{
-            width: 64, height: 64, borderRadius: '50%',
-            background: 'rgba(201,168,76,0.1)', border: '2px dashed rgba(201,168,76,0.3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', fontSize: '1.5rem', color: '#C9A84C',
-          }}>+</div>
-        </div>
+            background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.2)',
+            borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.25rem',
+            color: '#ff6b6b', fontSize: '0.85rem',
+          }}>
+            {localError || (typeof error === 'object' ? JSON.stringify(error) : error)}
+          </div>
+        )}
 
         {[
-          { label: 'Full Name', placeholder: 'John' },
-          { label: 'Email Address', placeholder: 'john@example.com' },
+          { label: 'Full Name', key: 'name', placeholder: 'John', type: 'text' },
+          { label: 'Email Address', key: 'email', placeholder: 'john@example.com', type: 'email' },
         ].map(f => (
-          <div key={f.label}>
+          <div key={f.key}>
             <label style={{ display: 'block', color: '#888', fontSize: '0.8rem', marginBottom: '0.5rem' }}>{f.label}</label>
-            <input placeholder={f.placeholder} style={{
-              width: '100%', padding: '0.75rem 1rem', marginBottom: '1.25rem',
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 8, color: '#E8E8E8', fontSize: '0.9rem', outline: 'none',
-              boxSizing: 'border-box',
-            }} />
+            <input
+              type={f.type}
+              value={form[f.key]}
+              onChange={e => setForm({ ...form, [f.key]: e.target.value })}
+              placeholder={f.placeholder}
+              style={{
+                width: '100%', padding: '0.75rem 1rem', marginBottom: '1.25rem',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 8, color: '#E8E8E8', fontSize: '0.9rem', outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
           </div>
         ))}
 
         <label style={{ display: 'block', color: '#888', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Password</label>
         <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
-          <input type={showPw ? 'text' : 'password'} placeholder="Min 6 Characters" style={{
-            width: '100%', padding: '0.75rem 1rem',
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 8, color: '#E8E8E8', fontSize: '0.9rem', outline: 'none',
-            boxSizing: 'border-box',
-          }} />
+          <input
+            type={showPw ? 'text' : 'password'}
+            value={form.password}
+            onChange={e => setForm({ ...form, password: e.target.value })}
+            onKeyDown={e => e.key === 'Enter' && handleRegister()}
+            placeholder="Min 6 Characters"
+            style={{
+              width: '100%', padding: '0.75rem 1rem',
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 8, color: '#E8E8E8', fontSize: '0.9rem', outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
           <button onClick={() => setShowPw(!showPw)} style={{
             position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
             background: 'none', border: 'none', color: '#555', cursor: 'pointer',
           }}>{showPw ? '👁' : '👁‍🗨'}</button>
         </div>
 
-        <button style={{
+        <button onClick={handleRegister} disabled={loading} style={{
           width: '100%', padding: '0.875rem',
-          background: 'linear-gradient(135deg, #C9A84C, #E8C97A)',
+          background: loading ? 'rgba(201,168,76,0.5)' : 'linear-gradient(135deg, #C9A84C, #E8C97A)',
           border: 'none', borderRadius: 8, color: '#0A0A0A',
           fontSize: '0.875rem', fontWeight: 700, letterSpacing: '0.08em',
-          textTransform: 'uppercase', cursor: 'pointer',
-        }}>Sign Up</button>
+          textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer',
+        }}>{loading ? 'Creating account...' : 'Sign Up'}</button>
 
         <p style={{ textAlign: 'center', marginTop: '1.5rem', color: '#555', fontSize: '0.85rem' }}>
           Already have an account?{' '}
