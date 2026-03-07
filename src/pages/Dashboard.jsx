@@ -106,15 +106,26 @@ export default function Dashboard() {
               }}>{user?.subscriptionPlan || 'free'}</div>
             </div>
           </div>
-          <button onClick={handleLogout} style={{
+          
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        {user?.subscriptionPlan !== 'premium' && (
+            <button onClick={() => navigate('/payment')} style={{
+            background: 'linear-gradient(135deg, #C9A84C, #E8C97A)',
+            border: 'none', borderRadius: 6, padding: '0.5rem 1rem',
+            color: '#0A0A0A', fontSize: '0.8rem', fontWeight: 700,
+            cursor: 'pointer', letterSpacing: '0.05em',
+            }}>⭐ Upgrade</button>
+        )}
+        <button onClick={handleLogout} style={{
             background: 'none', border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 6, padding: '0.5rem 1rem',
             color: '#555', fontSize: '0.8rem', cursor: 'pointer',
             transition: 'all 0.2s',
-          }}
+        }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,80,80,0.3)'; e.currentTarget.style.color = '#ff6b6b' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#555' }}
-          >Logout</button>
+        >Logout</button>
+        </div>
         </div>
       </nav>
 
