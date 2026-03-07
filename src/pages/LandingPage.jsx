@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 
 // ── Navbar ──────────────────────────────────────────────────────────────────
 function Navbar({ onLogin, onRegister }) {
@@ -39,16 +39,24 @@ function Navbar({ onLogin, onRegister }) {
 
       {/* Nav links */}
       <div style={{ display: 'flex', gap: '2.5rem' }}>
-        {['Features', 'Pricing', 'Templates'].map(item => (
-          <a key={item} href={`#${item.toLowerCase()}`} style={{
-            color: '#888', fontSize: '0.85rem', letterSpacing: '0.08em',
-            textTransform: 'uppercase', textDecoration: 'none',
-            transition: 'color 0.2s',
-          }}
-            onMouseEnter={e => e.target.style.color = '#C9A84C'}
-            onMouseLeave={e => e.target.style.color = '#888'}
-          >{item}</a>
-        ))}
+       {['Features', 'Pricing'].map(item => (
+        <a key={item} href={`#${item.toLowerCase()}`} style={{
+          color: '#888', fontSize: '0.85rem', letterSpacing: '0.08em',
+          textTransform: 'uppercase', textDecoration: 'none',
+          transition: 'color 0.2s',
+        }}
+          onMouseEnter={e => e.target.style.color = '#C9A84C'}
+          onMouseLeave={e => e.target.style.color = '#888'}
+        >{item}</a>
+      ))}
+      <Link to="/templates" style={{
+        color: '#888', fontSize: '0.85rem', letterSpacing: '0.08em',
+        textTransform: 'uppercase', textDecoration: 'none',
+        transition: 'color 0.2s',
+      }}
+        onMouseEnter={e => e.target.style.color = '#C9A84C'}
+        onMouseLeave={e => e.target.style.color = '#888'}
+      >Templates</Link>
       </div>
 
       {/* CTA */}

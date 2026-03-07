@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useReactToPrint } from 'react-to-print'
+import { useState, useEffect, useRef} from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
@@ -220,6 +221,13 @@ export default function ResumeEditor() {
   const [openSections, setOpenSections] = useState({ personal: true, experience: true, education: true, skills: true, languages: false, certifications: false })
   const [skillInput, setSkillInput] = useState('')
 
+  const previewRef = useRef(null)
+
+  const handlePrint = useReactToPrint({
+    contentRef: previewRef,
+    documentTitle: data.title || 'Resume',
+  })
+
   useEffect(() => {
     const fetchResume = async () => {
       try {
@@ -329,6 +337,19 @@ export default function ResumeEditor() {
               ✓ Saved
             </span>
           )}
+
+          <button onClick={handlePrint} style={{
+            background: 'none',
+            border: '1px solid rgba(201,168,76,0.3)',
+            borderRadius: 6, cursor: 'pointer',
+            color: '#C9A84C', fontSize: '0.82rem', fontWeight: 600,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+            padding: '0.6rem 1.5rem', transition: 'all 0.2s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.08)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+          >⬇ PDF</button>
+          
           <button onClick={saveResume} disabled={saving} style={{
             background: saving ? 'rgba(201,168,76,0.4)' : 'linear-gradient(135deg, #C9A84C, #E8C97A)',
             border: 'none', borderRadius: 6, cursor: saving ? 'not-allowed' : 'pointer',
@@ -486,7 +507,7 @@ export default function ResumeEditor() {
 
         {/* Right – Live Preview */}
         <div style={{ flex: 1, overflowY: 'auto', background: '#1a1a1a', padding: '2rem' }}>
-          <div style={{ maxWidth: 680, margin: '0 auto', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+          <div ref={previewRef} style={{ maxWidth: 680, margin: '0 auto', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
             <LivePreview data={data} />
           </div>
         </div>

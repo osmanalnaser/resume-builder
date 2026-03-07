@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import ResumeEditor from './pages/ResumeEditor'
 import ProtectedRoute from './components/ProtectedRoute'
 import PaymentPage from './pages/PaymentPage'
+import TemplatesPage from './pages/TemplatesPage'
 
 function App() {
   return (
@@ -24,6 +25,9 @@ function App() {
         } />
         <Route path="/payment/cancel" element={
           <ProtectedRoute><PaymentPage /></ProtectedRoute>
+        } />
+        <Route path="/templates" element={
+          <TemplatesPage />
         } />
       </Routes>
     </BrowserRouter>
